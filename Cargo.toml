@@ -1,0 +1,35 @@
+[package]
+name = "way"
+version = "0.0.0-beta1"
+edition = "2021"
+authors = ["Khashayar Fereidani"]
+description = "Fast Async Channel With no-std Support and Alternative Sync API"
+repository = "https://github.com/fereidani/way"
+documentation = "https://docs.rs/way"
+keywords = ["channel", "mpsc", "mpmc", "async"]
+categories = ["concurrency", "data-structures", "asynchronous"]
+license = "MIT"
+readme = "README.md"
+
+[dependencies]
+branches = "0.3"
+futures-core = "0.3"
+swait = { version = "0.1", optional = true }
+xutex = "0.2"
+
+[dev-dependencies]
+futures = "0.3.31"
+tokio = { version = "1.48.0", features = ["full"] }
+
+
+[features]
+default = ["std", "sync"]
+std = []
+no-std = ["libc", "winapi"]
+sync = ["swait"]
+
+[target.'cfg(unix)'.dependencies]
+libc = { version = "0.2", optional = true }
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", optional = true }

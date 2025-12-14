@@ -1,0 +1,49 @@
+name: CI (OSX)
+
+on:
+  push:
+  pull_request:
+  schedule: [cron: "40 1 * * *"]
+
+jobs:
+  build_and_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - stable
+          - nightly
+
+    name: ${{ matrix.version }} - aarch64-apple-darwin
+    runs-on: macOS-latest
+
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Install ${{ matrix.version }}
+        run: |
+          rustup toolchain install ${{ matrix.version }}-aarch64-apple-darwin --profile minimal --component rustfmt
+          rustup default ${{ matrix.version }}-aarch64-apple-darwin
+
+      - name: Generate Cargo.lock
+        run: cargo generate-lockfile
+
+      - name: Cache cargo registry
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/registry
+          key: ${{ matrix.version }}-aarch64-apple-darwin-cargo-registry-trimmed-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache cargo index
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/git
+          key: ${{ matrix.version }}-aarch64-apple-darwin-cargo-index-trimmed-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Run tests
+        run: cargo test --all-features
+
+      - name: Clear the cargo caches
+        run: |
+          cargo install cargo-cache --no-default-features --features ci-autoclean
+          cargo-cache
